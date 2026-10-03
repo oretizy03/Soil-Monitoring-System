@@ -4,6 +4,7 @@
 // 24-hour rolling Soil Condition Trend table
 // Live updating current hour averages
 
+#include <Arduino.h>
 #include <WiFi.h>
 #include <WebServer.h>
 #include <DNSServer.h>
