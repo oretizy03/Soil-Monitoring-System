@@ -1,17 +1,8 @@
-// SMART_SOIL_MONITOR_WITH_TRENDS.ino
-// Adds:
-// - Current readings (OLED + web)
-// - Last 20 readings (now shown horizontally, one row per parameter)
-// - 24-hour rolling Soil Condition Trend table
-// - Live updating current hour averages
-//
-// FIX: OLED was initializing correctly but never showing text because
-// setTextColor() was never called. Adafruit_GFX defaults text color to
-// match the background, so every draw call was invisible "white on white"
-// (functionally black-on-black on a monochrome buffer). Added
-// display.setTextColor(SH110X_WHITE) in setup(). Also added an init/error
-// check so a wiring/address problem prints to Serial instead of silently
-// failing.
+// SMART_SOIL_MONITOR.ino
+// Current readings (OLED + web)
+// Last 20 readings
+// 24-hour rolling Soil Condition Trend table
+// Live updating current hour averages
 
 #include <WiFi.h>
 #include <WebServer.h>
@@ -44,27 +35,12 @@ const int ADC_PH25 = 3790;
 const char* AP_NAME = "SMART_SOIL_MONITOR";
 WebServer server(80);
 
-// Captive portal: Android (and iOS/Windows) probe a known URL right after
-// joining a WiFi network to check for internet access. If nothing answers
-// the way they expect, the phone assumes it's just a plain network with no
-// login page and never shows the "tap to open" prompt. Answering those
-// probes ourselves - and pointing all DNS lookups back at the ESP32 - makes
-// the OS treat this like a hotel/airport WiFi login and auto-open the page.
 DNSServer dnsServer;
 const byte DNS_PORT = 53;
 
-// --- Time sync from the connected device's browser clock ---
-// The ESP32 has no RTC and runs as a standalone AP with no internet route,
-// so plain NTP isn't an option here. Instead, any phone/laptop that loads
-// the dashboard sends its own clock (already shifted to its local time
-// zone) once on page load. We store that alongside millis() and count
-// forward from it using elapsed uptime. The page's 5s auto-refresh means
-// this resyncs constantly while someone's connected, so drift stays
-// negligible; it just shows "not yet synced" until the first visit.
-unsigned long baseEpoch = 0;   // last-received "local" epoch seconds
-unsigned long baseMillis = 0;  // millis() at the moment baseEpoch arrived
+unsigned long baseEpoch = 0;  
+unsigned long baseMillis = 0; 
 bool timeSynced = false;
-
 float currentTemp = 0;
 float currentPH = 0;
 int currentMoisture = 0;
@@ -77,10 +53,8 @@ float phHistory[HISTORY_SIZE];
 int moistureHistory[HISTORY_SIZE];
 int historyIndex = 0;
 int historyCount = 0;
-
 unsigned long lastLog = 0;
 
-// ---------- 24 Hour Trend ----------
 const int TREND_SIZE = 24;
 
 struct TrendRow {
@@ -88,19 +62,16 @@ struct TrendRow {
   float moisture;
   float ph;
   String status;
-  unsigned long epoch;   // real time this row was finalized, from currentEpoch()
+  unsigned long epoch;
 };
 
 TrendRow trend[TREND_SIZE];
-
 int trendCount = 0;
 int trendStart = 0;
-
 float hourTempSum = 0;
 float hourMoistureSum = 0;
 float hourPhSum = 0;
 unsigned long hourSamples = 0;
-
 unsigned long hourStartMillis = 0;
 const unsigned long HOUR_DURATION = 3600000UL;
 
@@ -113,8 +84,6 @@ String getSoilStatus(float moisture)
 
 unsigned long currentEpoch()
 {
-  // "Local" epoch seconds (already shifted to match whatever browser last
-  // synced us), extrapolated forward using elapsed uptime since that sync.
   if(!timeSynced) return 0;
   return baseEpoch + (millis()-baseMillis)/1000UL;
 }
@@ -122,15 +91,11 @@ unsigned long currentEpoch()
 String formatEpoch(unsigned long epoch, bool withDate)
 {
   if(!timeSynced || epoch==0) return "--:--";
-
   time_t rawtime = (time_t)epoch;
-  struct tm *info = gmtime(&rawtime);   // gmtime, not localtime - epoch is
-                                         // already local-shifted client-side
+  struct tm *info = gmtime(&rawtime);   
   char buf[24];
-
   if(withDate) strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", info);
   else strftime(buf, sizeof(buf), "%H:%M", info);
-
   return String(buf);
 }
 
@@ -142,22 +107,22 @@ String predictIrrigation(float pH, float moisture, float temp)
         {
             if (moisture <= 11.35)
             {
-                return "Medium";   // class 2
+                return "Medium";   
             }
             else
             {
-                return "Medium";   // class 2
+                return "Medium";  
             }
         }
         else
         {
             if (temp <= 41.62)
             {
-                return "Medium";   // class 2
+                return "Medium";   
             }
             else
             {
-                return "High";     // class 0
+                return "High";    
             }
         }
     }
@@ -167,22 +132,22 @@ String predictIrrigation(float pH, float moisture, float temp)
         {
             if (pH <= 4.96)
             {
-                return "Low";      // class 1
+                return "Low";    
             }
             else
             {
-                return "Low";      // class 1
+                return "Low";    
             }
         }
         else
         {
             if (moisture <= 58.57)
             {
-                return "Low";      // class 1
+                return "Low";    
             }
             else
             {
-                return "Low";      // class 1
+                return "Low";     
             }
         }
     }
@@ -201,7 +166,6 @@ void finalizeHour()
   row.epoch = currentEpoch();
 
   int pos;
-
   if (trendCount < TREND_SIZE)
   {
     pos = (trendStart + trendCount) % TREND_SIZE;
@@ -234,10 +198,7 @@ void handleRoot()
   html += ".table-wrap{overflow-x:auto;max-width:100%;}";
   html += "</style>";
   html += "</head><body>";
-
-  // Fires on every page load (i.e. every 5s, via the meta refresh above).
-  // Sends this device's clock, pre-shifted to local time, so the ESP32 can
-  // stamp real times on the trend table without needing NTP or an RTC.
+  
   html += "<script>";
   html += "var off=new Date().getTimezoneOffset()*60000;";
   html += "var t=Math.floor((Date.now()-off)/1000);";
@@ -332,43 +293,34 @@ void setup()
   Wire.begin(21,22);
 
   if(!display.begin(OLED_ADDR, true)){
-    // Prints to Serial instead of failing silently — check wiring/address
-    // (0x3C is most common; some SH1106 boards use 0x3D) if this fires.
     Serial.println("SH1106 OLED not found at 0x3C - check wiring/address");
   }
 
   display.clearDisplay();
   display.setTextSize(1);
-  display.setTextColor(SH110X_WHITE);   // <-- the actual fix: was never set before
+  display.setTextColor(SH110X_WHITE); 
   display.setCursor(0,0);
   display.println("Booting...");
   display.display();
 
   sensors.begin();
-  sensors.setResolution(10);   // 10-bit: ~187ms conversion (was 12-bit, ~750ms), still 0.25 C precision
+  sensors.setResolution(10);
   analogReadResolution(12);
 
   WiFi.mode(WIFI_AP);
   WiFi.softAP(AP_NAME);
 
-  // Redirect every DNS lookup to the ESP32 itself, then answer the specific
-  // URLs each OS uses to test for a captive portal. Android checks
-  // /generate_204 (expects a real 204 - anything else triggers the login
-  // prompt); iOS/macOS check /hotspot-detect.html; Windows checks
-  // /ncsi.txt or /connecttest.txt. onNotFound() catches everything else so
-  // any other probe still lands on the dashboard instead of a 404.
   dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
 
   server.on("/",handleRoot);
-  server.on("/generate_204",handleRoot);          // Android
-  server.on("/gen_204",handleRoot);                // Android (older)
-  server.on("/hotspot-detect.html",handleRoot);    // iOS / macOS
-  server.on("/ncsi.txt",handleRoot);               // Windows
-  server.on("/connecttest.txt",handleRoot);        // Windows
+  server.on("/generate_204",handleRoot);          
+  server.on("/gen_204",handleRoot);                
+  server.on("/hotspot-detect.html",handleRoot);    
+  server.on("/ncsi.txt",handleRoot);               
+  server.on("/connecttest.txt",handleRoot);        
   server.on("/synctime",handleSyncTime);
   server.onNotFound(handleRoot);
   server.begin();
-
   hourStartMillis = millis();
 }
 
@@ -376,15 +328,11 @@ void loop()
 {
   dnsServer.processNextRequest();
   server.handleClient();
-
   sensors.requestTemperatures();
   float temperature=sensors.getTempCByIndex(0);
-
   int moistureADC=analogRead(MOISTURE_PIN);
-
   int moisturePercent=map(moistureADC,AIR_VALUE,WATER_VALUE,0,100);
   moisturePercent=constrain(moisturePercent,0,100);
-
   String moistureStatus=getSoilStatus(moisturePercent);
 
   long total=0;
@@ -449,10 +397,6 @@ void loop()
 
   display.display();
 
-  // Loop pacing: was 1000ms, now 200ms. Combined with the 10-bit DS18B20
-  // resolution and the shorter pH averaging window above, one full loop is
-  // now ~440-450ms (was ~1.4-1.5s), so the lastLog>=5000 check below
-  // overshoots by at most ~450ms instead of up to ~1400ms - logged rows
-  // now land in a ~5.0-5.45s window instead of ~5.0-6.4s.
+ 
   delay(200);
 }
