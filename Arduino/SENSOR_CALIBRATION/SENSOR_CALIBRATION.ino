@@ -8,14 +8,7 @@
 
    A reading only turns STABLE once the last 10 samples (5 seconds) are all within a small span of each other - this stops you from copying down a number the sensor hasn't actually settled on yet, which is the single most common source of a bad calibration. */
 
-
 #include <Arduino.h>
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SH110X.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
-#include <time.h>
 
 #define MOISTURE_PIN 34
 #define PH_PIN 35
