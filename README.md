@@ -174,11 +174,9 @@ The OLED uses I2C address 0x3C. The schematic also shows a 4.7 kOhm resistor on 
                                 DS18B20 Temperature (GPIO4)
                                 PH4502C pH Module (GPIO35)
                                           |
-                                          v
                                     ESP32 DEVKIT V1
                 Acquisition - Processing - Classification - Buffering
                         |                         |
-                        v                         v
                   SH1106 OLED                Wi-Fi Soft AP + Captive-Portal Dashboard
                   (I2C, local display)       (remote display)
               
@@ -389,7 +387,7 @@ The results confirm that the system meets the objectives set out for the project
 | 8 | Resistors, Potentiometers, and Voltage Dividers | | 1 | 480 |
 | 9 | Lithium-Ion Battery Pack (2S, 7.4V) | | 1 | 2,000 |
 | 10 | Decoupling Capacitors (100 uF + 0.1 uF) | | 1 | 100 |
-| 11 | 5V Linear Voltage Regulator (LM2940CT-5.0) | | 1 | 1,100 |
+| 11 | AMS1117 5V regulator | | 1 | 1,100 |
 | | Total | | | 58,100 |
 
 ## Conclusion
