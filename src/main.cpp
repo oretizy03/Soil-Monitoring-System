@@ -1,4 +1,4 @@
-// SMART_SOIL_MONITOR.ino
+// SMART_SOIL_MONITOR.cpp
 // Current readings (OLED + web)
 // Last 20 readings
 // 24-hour rolling Soil Condition Trend table

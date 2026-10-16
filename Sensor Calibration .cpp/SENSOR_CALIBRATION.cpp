@@ -1,4 +1,4 @@
-/* SENSOR_CALIBRATION.ino
+/* SENSOR_CALIBRATION.cpp -
    Standalone calibration utility for the capacitive moisture sensor and the PH4502C pH probe. This is a SEPARATE sketch from SMART_SOIL_MONITOR.ino - flash this one temporarily, note the numbers it gives you, then reflash the main sketch with those numbers plugged into AIR_VALUE / WATER_VALUEand ADC_PH7 / ADC_PH25.
 
    HOW TO USE 
