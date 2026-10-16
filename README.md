@@ -86,7 +86,7 @@ For students: a way to put into practice their knowledge of sensors, microcontro
 ├── Sensor Calibration .cpp/
 │   └── SENSOR_CALIBRATION.cpp
 └── Arduino/
-    └── Arduino IDE versions of the code
+    └── Arduino IDE versions of the codes
 ```
 
 - src/main.cpp is the main firmware for the ESP32.
@@ -118,9 +118,11 @@ pH shows the concentration of hydrogen ions in the soil solution on a logarithmi
 
 The project uses a combination pH electrode with the PH4502C signal conditioning module. The electrode works according to the Nernst equation:
 
-```
-E = E0 - (2.303 R T / F) * pH
-```
+
+<p align="center">
+  <i>E = E₀ − (2.303RT/F) × pH</i>
+</p>
+
 
 Where E is the measured electrode potential, E0 is the standard electrode potential, R is the universal gas constant, T is the absolute temperature in Kelvin, and F is the Faraday constant.
 
@@ -168,21 +170,10 @@ The OLED uses I2C address 0x3C. The schematic also shows a 4.7 kOhm resistor on 
 
 ### Block diagram
 
-```
-                                      SENSOR LAYER:
-                                Capacitive Moisture (GPIO34)
-                                DS18B20 Temperature (GPIO4)
-                                PH4502C pH Module (GPIO35)
-                                          |
-                                    ESP32 DEVKIT V1
-                Acquisition - Processing - Classification - Buffering
-                        |                         |
-                  SH1106 OLED                Wi-Fi Soft AP + Captive-Portal Dashboard
-                  (I2C, local display)       (remote display)
-              
-              POWER SUPPLY 
-                AMS1117 5V regulator + decoupling capacitors
-```
+<p align="center">
+  <img src="ESP32 Sensor System Block Diagram.png" alt="Alt text" width="500">
+</p>
+
 
 ### Power supply design
 
@@ -225,15 +216,19 @@ Temperature is used directly from the DS18B20, since it already outputs a calibr
 
 Moisture is mapped from the raw ADC reading between two calibration points taken in open air and in water:
 
-```
-Moisture (%) = (ADC_raw - ADC_air) / (ADC_water - ADC_air) * 100
-```
+
+<p align="center">
+  <i>Moisture (%) = (ADC<sub>raw</sub> − ADC<sub>air</sub>) / (ADC<sub>water</sub> − ADC<sub>air</sub>) × 100</i>
+</p>
+
 
 pH uses a two-point calibration at pH 7.0 and pH 2.5, with a 20-sample average of the raw ADC reading to reduce noise:
 
-```
-pH = 7.0 - (ADC_raw - ADC_pH7) * 4.5 / (ADC_pH2.5 - ADC_pH7)
-```
+
+<p align="center">
+  <i>pH = 7.0 − (ADC<sub>raw</sub> − ADC<sub>pH7</sub>) × 4.5 / (ADC<sub>pH2.5</sub> − ADC<sub>pH7</sub>)</i>
+</p>
+
 
 ADC_raw is the 20-sample averaged reading during operation. ADC_pH7 and ADC_pH2.5 are the reference ADC values recorded during calibration at pH 7.0 and pH 2.5. In the firmware, moisture is limited to 0 to 100 percent and pH to 0 to 14.
 
