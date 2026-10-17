@@ -365,7 +365,7 @@ The 24-hour trend log accumulated sample sums over the 1-hour window and produce
 
 The results confirm that the system meets the objectives set out for the project.
 
-- Signal isolation and power stability: the dedicated 5 V supply for the pH front-end through the LM2596 buck converter, together with decoupling capacitors, prevented analog signal drift during Wi-Fi transmission bursts.
+- Signal isolation and power stability: the dedicated 5 V supply for the pH front-end through the AMS1117 voltage regulator, together with decoupling capacitors, prevented analog signal drift during Wi-Fi transmission bursts.
 - User accessibility: a stand-alone captive portal removes the need for external routers, cellular coverage or special client software, which makes the device suitable for non-technical users in rural field environments.
 
 ## Bill of Materials
