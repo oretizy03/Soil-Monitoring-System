@@ -8,8 +8,8 @@ Group 2 Project, July 2026
 
 
 
-<p align="center">
-  <img src="DIY Soil Moisture Sensor Prototype.png" alt="Alt text" width="500">
+<p align="left">
+  <img src="DIY Soil Moisture Sensor Prototype.png" alt="Alt text" width="100%" height="auto">
 </p>
 
 
