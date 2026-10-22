@@ -6,6 +6,14 @@ EEG 323: Instrumentation and Measurement II
 Department of Electrical and Electronics Engineering, Faculty of Engineering, University of Lagos
 Group 2 Project, July 2026
 
+
+
+<p align="center">
+  <img src="DIY Soil Moisture Sensor Prototype.png" alt="Alt text" width="500">
+</p>
+
+
+
 ## Overview
 
 This project is a low-cost, sensor-based soil monitoring system for smart agriculture. It uses an ESP32 microcontroller to read soil moisture, soil temperature and soil pH, process the readings, and show them in real time on a small OLED screen and on a web dashboard that any phone or laptop can open.
